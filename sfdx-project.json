@@ -1,0 +1,15 @@
+{
+  "packageDirectories": [
+    {
+      "path": "force-app",
+      "default": true,
+      "package": "ASSP-Contract-Tracking",
+      "versionName": "ver 1.0",
+      "versionNumber": "1.0.0.NEXT"
+    }
+  ],
+  "name": "ASSP-Contract-Tracking",
+  "namespace": "",
+  "sourceApiVersion": "62.0",
+  "sfdcLoginUrl": "https://login.salesforce.com"
+}

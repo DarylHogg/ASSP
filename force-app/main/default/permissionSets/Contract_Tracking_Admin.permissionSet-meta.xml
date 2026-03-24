@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Full administrative access to the ASSP Contract Tracking application, including the ability to delete records and manage the sync schedule.</description>
+    <label>Contract Tracking Admin</label>
+    <hasActivationRequired>false</hasActivationRequired>
+    <userLicense>Salesforce</userLicense>
+
+    <!-- Contract_Document__c — full CRUD -->
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>true</modifyAllRecords>
+        <object>Contract_Document__c</object>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
+
+    <!-- SharePoint_File_Tracking__c — full CRUD for admin -->
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>true</modifyAllRecords>
+        <object>SharePoint_File_Tracking__c</object>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
+
+    <!-- Apex Classes -->
+    <classAccesses>
+        <apexClass>ContractDashboardController</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>ContractSyncScheduler</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>ContractSyncQueueable</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+    <classAccesses>
+        <apexClass>ContractProcessingQueueable</apexClass>
+        <enabled>true</enabled>
+    </classAccesses>
+</PermissionSet>

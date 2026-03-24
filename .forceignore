@@ -1,0 +1,16 @@
+# List files or directories below to ignore them when running force:source commands.
+# The syntax is the same as .gitignore files.
+
+package.xml
+
+# LWC configuration files
+**/.eslintrc.json
+**/.prettierignore
+**/.prettierrc
+**/jest.config.js
+**/.gitignore
+**/package.json
+**/README.md
+
+# LWC Jest
+**/__tests__/**

@@ -1,0 +1,100 @@
+<template>
+    <div class={cardClass}>
+        <!-- Card Header -->
+        <div class="card-header">
+            <div class="card-title-row">
+                <div class="contract-title">
+                    <lightning-icon icon-name={contractIcon} size="small" class="contract-type-icon"></lightning-icon>
+                    <span class="slds-text-heading_small contract-name" title={contract.Name}>{contract.Name}</span>
+                </div>
+                <lightning-badge label={contract.Status__c} class={statusBadgeClass}></lightning-badge>
+            </div>
+            <p class="vendor-name slds-text-body_small slds-text-color_weak">{contract.Vendor_Name__c}</p>
+        </div>
+
+        <!-- Alert Banners -->
+        <template if:true={showCancellationAlert}>
+            <div class="alert-banner alert-cancellation">
+                <lightning-icon icon-name="utility:error" size="xx-small"></lightning-icon>
+                Cancellation deadline in {contract.Days_Until_Cancellation_Deadline__c} day(s)!
+            </div>
+        </template>
+        <template if:true={showExpiryAlert}>
+            <div class="alert-banner alert-expiry">
+                <lightning-icon icon-name="utility:warning" size="xx-small"></lightning-icon>
+                Expires in {contract.Days_Until_Expiry__c} day(s)
+            </div>
+        </template>
+
+        <!-- Key Details -->
+        <div class="card-body">
+            <div class="detail-grid">
+                <template if:true={contract.Total_Amount__c}>
+                    <div class="detail-item highlight-amount">
+                        <span class="detail-label">Value</span>
+                        <span class="detail-value amount">{formattedAmount}</span>
+                    </div>
+                </template>
+
+                <template if:true={contract.Contract_Start_Date__c}>
+                    <div class="detail-item">
+                        <span class="detail-label">Start</span>
+                        <span class="detail-value">{formattedStartDate}</span>
+                    </div>
+                </template>
+
+                <template if:true={contract.Contract_End_Date__c}>
+                    <div class="detail-item">
+                        <span class="detail-label">End</span>
+                        <span class="detail-value">{formattedEndDate}</span>
+                    </div>
+                </template>
+
+                <template if:true={contract.Auto_Renew__c}>
+                    <div class="detail-item">
+                        <span class="detail-label">Auto-Renew</span>
+                        <span class="detail-value">
+                            <lightning-icon icon-name="utility:check" size="xx-small" class="icon-green"></lightning-icon>
+                            {contract.Renewal_Period__c}
+                        </span>
+                    </div>
+                </template>
+
+                <template if:true={contract.Renewal_Notice_Period__c}>
+                    <div class="detail-item">
+                        <span class="detail-label">Notice Required</span>
+                        <span class="detail-value">{contract.Renewal_Notice_Period__c}</span>
+                    </div>
+                </template>
+
+                <template if:true={contract.Cancellation_Notice_Due_Date__c}>
+                    <div class="detail-item">
+                        <span class="detail-label">Cancel By</span>
+                        <span class={cancellationDateClass}>{formattedCancellationDate}</span>
+                    </div>
+                </template>
+            </div>
+
+            <template if:true={contract.Description__c}>
+                <p class="description-text slds-text-body_small">{contract.Description__c}</p>
+            </template>
+        </div>
+
+        <!-- Card Footer -->
+        <div class="card-footer">
+            <template if:true={contract.SharePoint_URL__c}>
+                <a href={contract.SharePoint_URL__c} target="_blank" rel="noopener noreferrer"
+                   class="slds-text-body_small sp-link">
+                    <lightning-icon icon-name="utility:open" size="xx-small"></lightning-icon>
+                    View in SharePoint
+                </a>
+            </template>
+            <lightning-button
+                label="View Record"
+                variant="base"
+                onclick={handleViewRecord}
+                class="view-btn">
+            </lightning-button>
+        </div>
+    </div>
+</template>

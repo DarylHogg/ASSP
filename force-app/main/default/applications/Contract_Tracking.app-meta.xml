@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomApplication xmlns="http://soap.sforce.com/2006/04/metadata">
+    <defaultLandingTab>contractDashboard</defaultLandingTab>
+    <description>ASSP Contract Tracking — monitors SharePoint for contracts and surfaces key terms, renewal dates, and cancellation deadlines.</description>
+    <isNavAutoTempTabsDisabled>false</isNavAutoTempTabsDisabled>
+    <isNavPersonalizationDisabled>false</isNavPersonalizationDisabled>
+    <label>Contract Tracker</label>
+    <navType>Standard</navType>
+    <tabs>contractDashboard</tabs>
+    <tabs>Contract_Document__c</tabs>
+    <uiType>Lightning</uiType>
+    <utilityBar>
+    </utilityBar>
+</CustomApplication>

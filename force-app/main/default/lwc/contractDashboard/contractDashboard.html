@@ -1,0 +1,162 @@
+<template>
+    <div class="dashboard-container">
+
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div class="header-title">
+                <lightning-icon icon-name="standard:contract" size="large" class="header-icon"></lightning-icon>
+                <div>
+                    <h1 class="slds-text-heading_large">Contract Tracker</h1>
+                    <p class="slds-text-body_small slds-text-color_weak">
+                        Monitors SharePoint for new contracts and extracts key terms automatically.
+                    </p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <lightning-button
+                    label="Sync Now"
+                    icon-name="utility:refresh"
+                    variant="brand"
+                    onclick={handleSyncNow}
+                    disabled={isSyncing}
+                    class="slds-m-right_x-small">
+                </lightning-button>
+                <template if:true={isSyncing}>
+                    <lightning-spinner size="small" alternative-text="Syncing..."></lightning-spinner>
+                </template>
+            </div>
+        </div>
+
+        <!-- Sync message -->
+        <template if:true={syncMessage}>
+            <div class={syncMessageClass} role="alert">
+                <span class="slds-assistive-text">Info</span>
+                {syncMessage}
+            </div>
+        </template>
+
+        <!-- Summary Tiles -->
+        <template if:true={summary}>
+            <div class="tile-row">
+                <div class="summary-tile tile-total" onclick={handleTileClick} data-filter="All">
+                    <div class="tile-value">{summary.totalContracts}</div>
+                    <div class="tile-label">Total Contracts</div>
+                </div>
+                <div class="summary-tile tile-active" onclick={handleTileClick} data-filter="Active">
+                    <div class="tile-value">{summary.activeContracts}</div>
+                    <div class="tile-label">Active</div>
+                </div>
+                <div class="summary-tile tile-expiring" onclick={handleTileClick} data-filter="Expiring Soon">
+                    <div class="tile-value">{summary.expiringSoon}</div>
+                    <div class="tile-label">Expiring &lt; 90 Days</div>
+                </div>
+                <div class="summary-tile tile-cancellation" onclick={handleTileClick} data-filter="Cancellation Alert">
+                    <div class="tile-value">{summary.cancellationDeadlineSoon}</div>
+                    <div class="tile-label">Cancellation Alert</div>
+                </div>
+                <div class="summary-tile tile-review" onclick={handleTileClick} data-filter="Pending Review">
+                    <div class="tile-value">{summary.pendingReview}</div>
+                    <div class="tile-label">Pending Review</div>
+                </div>
+            </div>
+        </template>
+
+        <!-- Filters & Search -->
+        <div class="filter-bar">
+            <lightning-input
+                type="search"
+                label="Search contracts"
+                placeholder="Vendor name or contract name..."
+                value={searchTerm}
+                onchange={handleSearch}
+                class="search-input">
+            </lightning-input>
+            <lightning-combobox
+                label="Status"
+                value={statusFilter}
+                options={statusOptions}
+                onchange={handleStatusFilter}
+                class="status-filter">
+            </lightning-combobox>
+        </div>
+
+        <!-- Contract List -->
+        <template if:true={isLoading}>
+            <div class="loading-container">
+                <lightning-spinner alternative-text="Loading contracts..." size="medium"></lightning-spinner>
+            </div>
+        </template>
+
+        <template if:false={isLoading}>
+            <template if:true={hasContracts}>
+                <div class="contract-grid">
+                    <template for:each={contracts} for:item="contract">
+                        <c-contract-card
+                            key={contract.Id}
+                            contract={contract}
+                            oncontractupdate={handleContractUpdate}>
+                        </c-contract-card>
+                    </template>
+                </div>
+
+                <!-- Pagination -->
+                <template if:true={showPagination}>
+                    <div class="pagination">
+                        <lightning-button
+                            label="Previous"
+                            icon-name="utility:chevronleft"
+                            onclick={handlePreviousPage}
+                            disabled={isFirstPage}>
+                        </lightning-button>
+                        <span class="page-info">Page {pageNumber} of {totalPages} ({totalRecords} records)</span>
+                        <lightning-button
+                            label="Next"
+                            icon-name="utility:chevronright"
+                            icon-position="right"
+                            onclick={handleNextPage}
+                            disabled={isLastPage}>
+                        </lightning-button>
+                    </div>
+                </template>
+            </template>
+
+            <template if:false={hasContracts}>
+                <div class="empty-state">
+                    <lightning-icon icon-name="utility:file" size="large" class="empty-icon"></lightning-icon>
+                    <p class="slds-text-heading_small">No contracts found</p>
+                    <p class="slds-text-body_regular slds-text-color_weak">
+                        {emptyStateMessage}
+                    </p>
+                </div>
+            </template>
+        </template>
+
+        <!-- Scheduler Panel -->
+        <div class="scheduler-panel">
+            <lightning-card title="Sync Schedule" icon-name="utility:clock">
+                <div class="slds-p-around_medium">
+                    <p class="slds-text-body_regular">
+                        <strong>Status:</strong>
+                        <template if:true={syncScheduled}>
+                            <lightning-badge label="Scheduled" class="badge-success"></lightning-badge>
+                            Hourly sync is active.
+                        </template>
+                        <template if:false={syncScheduled}>
+                            <lightning-badge label="Not Scheduled" class="badge-warning"></lightning-badge>
+                            No sync schedule is set.
+                        </template>
+                    </p>
+                    <template if:false={syncScheduled}>
+                        <lightning-button
+                            label="Enable Hourly Sync"
+                            variant="neutral"
+                            onclick={handleScheduleSync}
+                            class="slds-m-top_small">
+                        </lightning-button>
+                    </template>
+                </div>
+            </lightning-card>
+        </div>
+
+    </div>
+</template>

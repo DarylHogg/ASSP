@@ -1,0 +1,5 @@
+.sfdx/
+.sf/
+node_modules/
+.env
+*.log

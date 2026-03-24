@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Scan_Subfolders__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>Whether to recursively scan subfolders within the contracts folder.</description>
+    <label>Scan Subfolders</label>
+    <type>Checkbox</type>
+</CustomField>
