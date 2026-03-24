@@ -1,130 +1,74 @@
 /**
- * Queueable that processes a single SharePoint file: downloads the content,
- * runs AI extraction, and creates a Contract_Document__c record.
- *
- * Each instance handles one file. After completion it chains the next pending
- * file automatically, allowing the scheduler to enqueue just the first item.
+ * Queueable that processes an uploaded contract file: reads the ContentVersion body,
+ * runs AI extraction, creates a Contract_Document__c record, and links the file to it.
  */
 public class ContractProcessingQueueable implements Queueable, Database.AllowsCallouts {
 
-    private Id trackingId;
+    private Id contentVersionId;
 
-    public ContractProcessingQueueable(Id trackingId) {
-        this.trackingId = trackingId;
+    public ContractProcessingQueueable(Id contentVersionId) {
+        this.contentVersionId = contentVersionId;
     }
 
     public void execute(QueueableContext ctx) {
-        SharePoint_File_Tracking__c tracking = queryTracking(trackingId);
-        if (tracking == null) return;
-
-        // Mark as Processing
-        tracking.Status__c = 'Processing';
-        update tracking;
-
-        try {
-            processFile(tracking);
-        } catch (Exception e) {
-            markError(tracking, e.getMessage() + '\n' + e.getStackTraceString());
-        }
-
-        // Chain next pending file (if any)
-        List<SharePoint_File_Tracking__c> next = [
-            SELECT Id
-            FROM   SharePoint_File_Tracking__c
-            WHERE  Status__c = 'Pending'
-            ORDER BY CreatedDate ASC
+        List<ContentVersion> cvs = [
+            SELECT Id, Title, FileExtension, VersionData, ContentDocumentId
+            FROM   ContentVersion
+            WHERE  Id = :contentVersionId
             LIMIT  1
         ];
-        if (!next.isEmpty()) {
-            System.enqueueJob(new ContractProcessingQueueable(next[0].Id));
+        if (cvs.isEmpty()) return;
+
+        try {
+            processFile(cvs[0]);
+        } catch (Exception e) {
+            System.debug('Contract processing error: ' + e.getMessage() + '\n' + e.getStackTraceString());
         }
     }
 
     // ─── Private Helpers ─────────────────────────────────────────────────────────
 
-    private void processFile(SharePoint_File_Tracking__c tracking) {
-        // 1. Download file from SharePoint
-        String base64Content = SharePointService.downloadFileAsBase64(
-            tracking.Drive_Id__c,
-            tracking.SharePoint_Item_Id__c
-        );
+    private void processFile(ContentVersion cv) {
+        String fileName    = cv.Title + (String.isNotBlank(cv.FileExtension) ? '.' + cv.FileExtension : '');
+        String base64Data  = EncodingUtil.base64Encode(cv.VersionData);
 
-        // 2. Extract contract data via Claude API
-        ContractExtractionService.ContractData contractData =
-            ContractExtractionService.extractFromBase64(tracking.File_Name__c, base64Content);
+        // Extract contract terms via Claude AI
+        ContractExtractionService.ContractData data =
+            ContractExtractionService.extractFromBase64(fileName, base64Data);
 
-        // 3. Determine extraction status
-        String extractionStatus = (contractData.extractionSuccessful == true)
-            ? 'Completed'
-            : 'Failed';
-
-        // 4. Upsert Contract_Document__c using SharePoint file ID as external key
+        // Build the Contract_Document__c record
         Contract_Document__c doc = new Contract_Document__c(
-            Name                          = stripExtension(tracking.File_Name__c),
-            SharePoint_File_Id__c         = tracking.SharePoint_Item_Id__c,
-            SharePoint_URL__c             = tracking.SharePoint_URL__c,
-            Extraction_Status__c          = extractionStatus,
-            Status__c                     = 'Pending Review'
+            Name                 = cv.Title,
+            Extraction_Status__c = (data.extractionSuccessful == true) ? 'Completed' : 'Failed',
+            Status__c            = 'Pending Review'
         );
 
-        if (contractData.extractionSuccessful == true) {
-            doc.Vendor_Name__c                 = contractData.vendorName;
-            doc.Total_Amount__c                = contractData.totalAmount;
-            doc.Currency_Code__c               = contractData.currencyCode;
-            doc.Contract_Start_Date__c         = contractData.startDate;
-            doc.Contract_End_Date__c           = contractData.endDate;
-            doc.Auto_Renew__c                  = contractData.autoRenew != null ? contractData.autoRenew : false;
-            doc.Renewal_Period__c              = contractData.renewalPeriod;
-            doc.Renewal_Notice_Period__c       = contractData.renewalNoticePeriod;
-            doc.Cancellation_Notice_Due_Date__c = contractData.cancellationNoticeDueDate;
-            doc.Cancellation_Terms__c          = contractData.cancellationTerms;
-            doc.Contract_Type__c               = contractData.contractType;
-            doc.Description__c                 = contractData.description;
-            doc.Status__c                      = 'Active';
+        if (data.extractionSuccessful == true) {
+            doc.Vendor_Name__c                  = data.vendorName;
+            doc.Total_Amount__c                 = data.totalAmount;
+            doc.Currency_Code__c                = data.currencyCode;
+            doc.Contract_Start_Date__c          = data.startDate;
+            doc.Contract_End_Date__c            = data.endDate;
+            doc.Auto_Renew__c                   = data.autoRenew != null ? data.autoRenew : false;
+            doc.Renewal_Period__c               = data.renewalPeriod;
+            doc.Renewal_Notice_Period__c        = data.renewalNoticePeriod;
+            doc.Cancellation_Notice_Due_Date__c = data.cancellationNoticeDueDate;
+            doc.Cancellation_Terms__c           = data.cancellationTerms;
+            doc.Contract_Type__c                = data.contractType;
+            doc.Description__c                  = data.description;
+            doc.Status__c                       = 'Active';
         }
 
-        Database.UpsertResult upsertResult = Database.upsert(doc, Contract_Document__c.SharePoint_File_Id__c, false);
+        insert doc;
 
-        if (!upsertResult.isSuccess()) {
-            List<String> errors = new List<String>();
-            for (Database.Error err : upsertResult.getErrors()) {
-                errors.add(err.getMessage());
-            }
-            throw new ContractProcessingException('Upsert failed: ' + String.join(errors, '; '));
-        }
-
-        // 5. Link tracking record to Contract_Document__c
-        tracking.Status__c          = 'Processed';
-        tracking.Contract_Document__c = upsertResult.getId();
-        tracking.Processed_Date__c  = DateTime.now();
-        if (contractData.extractionSuccessful != true) {
-            tracking.Error_Message__c = contractData.extractionError;
-        }
-        update tracking;
-    }
-
-    private SharePoint_File_Tracking__c queryTracking(Id tid) {
-        List<SharePoint_File_Tracking__c> records = [
-            SELECT Id, SharePoint_Item_Id__c, File_Name__c, Drive_Id__c,
-                   SharePoint_URL__c, Status__c
-            FROM   SharePoint_File_Tracking__c
-            WHERE  Id = :tid
-            AND    Status__c IN ('Pending', 'Processing')
-            LIMIT  1
-        ];
-        return records.isEmpty() ? null : records[0];
-    }
-
-    private void markError(SharePoint_File_Tracking__c tracking, String msg) {
-        tracking.Status__c     = 'Error';
-        tracking.Error_Message__c = msg.left(32000);
-        update tracking;
-    }
-
-    private String stripExtension(String fileName) {
-        if (String.isBlank(fileName)) return fileName;
-        Integer dotIdx = fileName.lastIndexOf('.');
-        return (dotIdx > 0) ? fileName.substring(0, dotIdx) : fileName;
+        // Link the uploaded file to the new contract record
+        ContentDocumentLink link = new ContentDocumentLink(
+            ContentDocumentId = cv.ContentDocumentId,
+            LinkedEntityId    = doc.Id,
+            ShareType         = 'V',
+            Visibility        = 'AllUsers'
+        );
+        insert link;
     }
 
     public class ContractProcessingException extends Exception {}

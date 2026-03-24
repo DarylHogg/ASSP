@@ -40,8 +40,6 @@ public with sharing class ContractDashboardController {
             WHERE Status__c = 'Pending Review'
         ];
 
-        summary.syncScheduled = ContractSyncScheduler.isScheduled();
-
         return summary;
     }
 
@@ -77,7 +75,7 @@ public with sharing class ContractDashboardController {
                          + 'Cancellation_Notice_Due_Date__c, Is_Expiring_Soon__c, '
                          + 'Cancellation_Deadline_Alert__c, Days_Until_Expiry__c, '
                          + 'Days_Until_Cancellation_Deadline__c, Extraction_Status__c, '
-                         + 'SharePoint_URL__c, CreatedDate '
+                         + 'CreatedDate '
                          + 'FROM Contract_Document__c'
                          + whereClause
                          + ' ORDER BY Contract_End_Date__c ASC NULLS LAST'
@@ -95,29 +93,35 @@ public with sharing class ContractDashboardController {
         return page;
     }
 
-    /**
-     * Triggers an immediate (manual) SharePoint sync. Not cacheable.
-     */
-    @AuraEnabled
-    public static String triggerSync() {
-        try {
-            ContractSyncScheduler.triggerImmediateSync();
-            return 'Sync started successfully. New contracts will appear within a few minutes.';
-        } catch (Exception e) {
-            throw new AuraHandledException('Failed to trigger sync: ' + e.getMessage());
-        }
-    }
+    // ─── File Upload ─────────────────────────────────────────────────────────────
 
     /**
-     * Schedules the hourly sync job. Not cacheable.
+     * Stores the uploaded file as a Salesforce ContentVersion and enqueues
+     * AI extraction. Returns the ContentVersion Id.
+     *
+     * @param fileName     Original file name including extension (e.g. "contract.pdf").
+     * @param base64Content  Base64-encoded file content.
      */
     @AuraEnabled
-    public static String scheduleSyncJob(String cronExpression) {
+    public static Id enqueueContractProcessing(String fileName, String base64Content) {
+        if (String.isBlank(fileName) || String.isBlank(base64Content)) {
+            throw new AuraHandledException('File name and content are required.');
+        }
+
         try {
-            String jobId = ContractSyncScheduler.scheduleDefault(cronExpression);
-            return 'Sync job scheduled. Job ID: ' + jobId;
+            ContentVersion cv = new ContentVersion(
+                Title          = stripExtension(fileName),
+                PathOnClient   = fileName,
+                VersionData    = EncodingUtil.base64Decode(base64Content),
+                IsMajorVersion = true
+            );
+            insert cv;
+
+            System.enqueueJob(new ContractProcessingQueueable(cv.Id));
+
+            return cv.Id;
         } catch (Exception e) {
-            throw new AuraHandledException('Failed to schedule sync: ' + e.getMessage());
+            throw new AuraHandledException('Upload failed: ' + e.getMessage());
         }
     }
 
@@ -146,6 +150,12 @@ public with sharing class ContractDashboardController {
         return conditions.isEmpty() ? '' : ' WHERE ' + String.join(conditions, ' AND ');
     }
 
+    private static String stripExtension(String fileName) {
+        if (String.isBlank(fileName)) return fileName;
+        Integer dotIdx = fileName.lastIndexOf('.');
+        return (dotIdx > 0) ? fileName.substring(0, dotIdx) : fileName;
+    }
+
     // ─── Inner Types ────────────────────────────────────────────────────────────
 
     public class DashboardSummary {
@@ -154,7 +164,6 @@ public with sharing class ContractDashboardController {
         @AuraEnabled public Integer expiringSoon              { get; set; }
         @AuraEnabled public Integer cancellationDeadlineSoon  { get; set; }
         @AuraEnabled public Integer pendingReview             { get; set; }
-        @AuraEnabled public Boolean syncScheduled             { get; set; }
     }
 
     public class ContractPage {

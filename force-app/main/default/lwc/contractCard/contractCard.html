@@ -82,13 +82,6 @@
 
         <!-- Card Footer -->
         <div class="card-footer">
-            <template if:true={contract.SharePoint_URL__c}>
-                <a href={contract.SharePoint_URL__c} target="_blank" rel="noopener noreferrer"
-                   class="slds-text-body_small sp-link">
-                    <lightning-icon icon-name="utility:open" size="xx-small"></lightning-icon>
-                    View in SharePoint
-                </a>
-            </template>
             <lightning-button
                 label="View Record"
                 variant="base"

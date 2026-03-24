@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
-    <description>Configuration for SharePoint integration. Stores site, drive, and folder IDs for the contracts folder to monitor.</description>
-    <label>SharePoint Config</label>
-    <pluralLabel>SharePoint Configs</pluralLabel>
-    <visibility>Public</visibility>
-</CustomObject>

@@ -8,32 +8,19 @@
                 <div>
                     <h1 class="slds-text-heading_large">Contract Tracker</h1>
                     <p class="slds-text-body_small slds-text-color_weak">
-                        Monitors SharePoint for new contracts and extracts key terms automatically.
+                        Upload contracts to extract and track key terms automatically.
                     </p>
                 </div>
             </div>
             <div class="header-actions">
                 <lightning-button
-                    label="Sync Now"
-                    icon-name="utility:refresh"
+                    label="Upload Contract"
+                    icon-name="utility:upload"
                     variant="brand"
-                    onclick={handleSyncNow}
-                    disabled={isSyncing}
-                    class="slds-m-right_x-small">
+                    onclick={handleUploadClick}>
                 </lightning-button>
-                <template if:true={isSyncing}>
-                    <lightning-spinner size="small" alternative-text="Syncing..."></lightning-spinner>
-                </template>
             </div>
         </div>
-
-        <!-- Sync message -->
-        <template if:true={syncMessage}>
-            <div class={syncMessageClass} role="alert">
-                <span class="slds-assistive-text">Info</span>
-                {syncMessage}
-            </div>
-        </template>
 
         <!-- Summary Tiles -->
         <template if:true={summary}>
@@ -131,32 +118,59 @@
             </template>
         </template>
 
-        <!-- Scheduler Panel -->
-        <div class="scheduler-panel">
-            <lightning-card title="Sync Schedule" icon-name="utility:clock">
-                <div class="slds-p-around_medium">
-                    <p class="slds-text-body_regular">
-                        <strong>Status:</strong>
-                        <template if:true={syncScheduled}>
-                            <lightning-badge label="Scheduled" class="badge-success"></lightning-badge>
-                            Hourly sync is active.
-                        </template>
-                        <template if:false={syncScheduled}>
-                            <lightning-badge label="Not Scheduled" class="badge-warning"></lightning-badge>
-                            No sync schedule is set.
-                        </template>
+    </div>
+
+    <!-- Upload Modal -->
+    <template if:true={showUploadModal}>
+        <section role="dialog" tabindex="-1" aria-modal="true" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <lightning-button-icon
+                        icon-name="utility:close"
+                        alternative-text="Close"
+                        variant="bare-inverse"
+                        onclick={closeUploadModal}
+                        class="slds-modal__close">
+                    </lightning-button-icon>
+                    <h2 class="slds-modal__title slds-has-divider_bottom-space">Upload Contract</h2>
+                </header>
+                <div class="slds-modal__content slds-p-around_medium">
+                    <p class="slds-text-body_regular slds-m-bottom_medium slds-text-color_weak">
+                        Select a PDF, DOCX, or DOC file. Claude AI will extract the key contract terms automatically.
                     </p>
-                    <template if:false={syncScheduled}>
-                        <lightning-button
-                            label="Enable Hourly Sync"
-                            variant="neutral"
-                            onclick={handleScheduleSync}
-                            class="slds-m-top_small">
-                        </lightning-button>
+                    <lightning-input
+                        type="file"
+                        label="Contract file"
+                        accept=".pdf,.docx,.doc"
+                        onchange={handleFileChange}>
+                    </lightning-input>
+                    <template if:true={uploadError}>
+                        <p class="slds-text-color_error slds-m-top_small">{uploadError}</p>
+                    </template>
+                    <template if:true={isUploading}>
+                        <div class="slds-m-top_medium">
+                            <lightning-spinner size="small" alternative-text="Uploading..."></lightning-spinner>
+                            <span class="slds-m-left_small slds-text-body_small">Uploading and queuing for processing…</span>
+                        </div>
                     </template>
                 </div>
-            </lightning-card>
-        </div>
+                <footer class="slds-modal__footer">
+                    <lightning-button
+                        label="Cancel"
+                        onclick={closeUploadModal}
+                        disabled={isUploading}>
+                    </lightning-button>
+                    <lightning-button
+                        label="Upload &amp; Process"
+                        variant="brand"
+                        onclick={handleUploadAndProcess}
+                        disabled={isUploading}
+                        class="slds-m-left_x-small">
+                    </lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
 
-    </div>
 </template>

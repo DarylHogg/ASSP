@@ -1,9 +1,8 @@
-import { LightningElement, track, wire } from 'lwc';
+import { LightningElement, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
-import getDashboardSummary from '@salesforce/apex/ContractDashboardController.getDashboardSummary';
-import getContracts      from '@salesforce/apex/ContractDashboardController.getContracts';
-import triggerSync       from '@salesforce/apex/ContractDashboardController.triggerSync';
-import scheduleSyncJob   from '@salesforce/apex/ContractDashboardController.scheduleSyncJob';
+import getDashboardSummary        from '@salesforce/apex/ContractDashboardController.getDashboardSummary';
+import getContracts               from '@salesforce/apex/ContractDashboardController.getContracts';
+import enqueueContractProcessing  from '@salesforce/apex/ContractDashboardController.enqueueContractProcessing';
 
 const PAGE_SIZE = 12;
 const SEARCH_DEBOUNCE_MS = 400;
@@ -11,21 +10,21 @@ const SEARCH_DEBOUNCE_MS = 400;
 export default class ContractDashboard extends LightningElement {
 
     // ─── State ───────────────────────────────────────────────────────────────────
-    @track contracts     = [];
-    @track summary       = null;
-    @track isLoading     = false;
-    @track isSyncing     = false;
-    @track syncMessage   = '';
-    @track syncMessageVariant = 'info';
+    @track contracts        = [];
+    @track summary          = null;
+    @track isLoading        = false;
+    @track showUploadModal  = false;
+    @track isUploading      = false;
+    @track uploadError      = '';
 
     statusFilter = 'All';
     searchTerm   = '';
     pageNumber   = 1;
     totalRecords = 0;
     totalPages   = 1;
-    syncScheduled = false;
 
-    _searchTimer = null;
+    _searchTimer  = null;
+    _selectedFile = null;
 
     // ─── Lifecycle ───────────────────────────────────────────────────────────────
     connectedCallback() {
@@ -33,16 +32,11 @@ export default class ContractDashboard extends LightningElement {
         this.loadContracts();
     }
 
-    // ─── Wire / Data Loading ─────────────────────────────────────────────────────
+    // ─── Data Loading ────────────────────────────────────────────────────────────
     loadSummary() {
         getDashboardSummary()
-            .then(result => {
-                this.summary       = result;
-                this.syncScheduled = result.syncScheduled;
-            })
-            .catch(error => {
-                console.error('Failed to load summary:', error);
-            });
+            .then(result => { this.summary = result; })
+            .catch(error => { console.error('Failed to load summary:', error); });
     }
 
     loadContracts() {
@@ -54,10 +48,10 @@ export default class ContractDashboard extends LightningElement {
             pageNumber:   this.pageNumber
         })
             .then(result => {
-                this.contracts   = result.contracts;
+                this.contracts    = result.contracts;
                 this.totalRecords = result.totalRecords;
-                this.totalPages  = result.totalPages;
-                this.isLoading   = false;
+                this.totalPages   = result.totalPages;
+                this.isLoading    = false;
             })
             .catch(error => {
                 this.isLoading = false;
@@ -65,7 +59,7 @@ export default class ContractDashboard extends LightningElement {
             });
     }
 
-    // ─── Event Handlers ──────────────────────────────────────────────────────────
+    // ─── Filter / Search / Pagination ────────────────────────────────────────────
     handleSearch(event) {
         const value = event.detail.value;
         clearTimeout(this._searchTimer);
@@ -83,8 +77,7 @@ export default class ContractDashboard extends LightningElement {
     }
 
     handleTileClick(event) {
-        const filter = event.currentTarget.dataset.filter;
-        this.statusFilter = filter;
+        this.statusFilter = event.currentTarget.dataset.filter;
         this.pageNumber   = 1;
         this.loadContracts();
     }
@@ -108,39 +101,70 @@ export default class ContractDashboard extends LightningElement {
         this.loadContracts();
     }
 
-    handleSyncNow() {
-        this.isSyncing    = true;
-        this.syncMessage  = '';
-        triggerSync()
-            .then(message => {
-                this.isSyncing          = false;
-                this.syncMessage        = message;
-                this.syncMessageVariant = 'success';
-                this.showToast('Sync Started', message, 'success');
-                // Refresh after a short delay to pick up any fast-processing files
-                setTimeout(() => {
-                    this.loadSummary();
-                    this.loadContracts();
-                }, 5000);
-            })
-            .catch(error => {
-                this.isSyncing          = false;
-                this.syncMessage        = this.extractError(error);
-                this.syncMessageVariant = 'error';
-                this.showToast('Sync Failed', this.syncMessage, 'error');
-            });
+    // ─── Upload Modal ────────────────────────────────────────────────────────────
+    handleUploadClick() {
+        this.showUploadModal = true;
+        this.uploadError     = '';
+        this._selectedFile   = null;
     }
 
-    handleScheduleSync() {
-        scheduleSyncJob({ cronExpression: null })
-            .then(message => {
-                this.syncScheduled = true;
-                this.showToast('Scheduled', message, 'success');
-                this.loadSummary();
+    closeUploadModal() {
+        this.showUploadModal = false;
+        this._selectedFile   = null;
+        this.uploadError     = '';
+    }
+
+    handleFileChange(event) {
+        const files = event.detail.files;
+        this._selectedFile = (files && files.length > 0) ? files[0] : null;
+        this.uploadError   = '';
+    }
+
+    handleUploadAndProcess() {
+        if (!this._selectedFile) {
+            this.uploadError = 'Please select a file to upload.';
+            return;
+        }
+
+        this.isUploading = true;
+        this.uploadError = '';
+
+        const reader = new FileReader();
+
+        reader.onload = () => {
+            // reader.result is "data:<mime>;base64,<data>"
+            const base64Content = reader.result.split(',')[1];
+
+            enqueueContractProcessing({
+                fileName:     this._selectedFile.name,
+                base64Content: base64Content
             })
-            .catch(error => {
-                this.showToast('Error', this.extractError(error), 'error');
-            });
+                .then(() => {
+                    this.isUploading   = false;
+                    this.showUploadModal = false;
+                    this._selectedFile = null;
+                    this.showToast(
+                        'Upload Successful',
+                        'Contract is being processed by AI. It will appear in the dashboard shortly.',
+                        'success'
+                    );
+                    setTimeout(() => {
+                        this.loadSummary();
+                        this.loadContracts();
+                    }, 5000);
+                })
+                .catch(error => {
+                    this.isUploading = false;
+                    this.uploadError = this.extractError(error);
+                });
+        };
+
+        reader.onerror = () => {
+            this.isUploading = false;
+            this.uploadError = 'Failed to read the file. Please try again.';
+        };
+
+        reader.readAsDataURL(this._selectedFile);
     }
 
     // ─── Getters ─────────────────────────────────────────────────────────────────
@@ -161,13 +185,6 @@ export default class ContractDashboard extends LightningElement {
     get isFirstPage()    { return this.pageNumber <= 1; }
     get isLastPage()     { return this.pageNumber >= this.totalPages; }
 
-    get syncMessageClass() {
-        const base = 'slds-notify slds-notify_alert slds-m-bottom_small ';
-        return base + (this.syncMessageVariant === 'error'
-            ? 'slds-theme_error'
-            : 'slds-theme_success');
-    }
-
     get emptyStateMessage() {
         if (this.searchTerm) {
             return `No contracts match "${this.searchTerm}". Try a different search term.`;
@@ -175,7 +192,7 @@ export default class ContractDashboard extends LightningElement {
         if (this.statusFilter !== 'All') {
             return `No contracts with status "${this.statusFilter}".`;
         }
-        return 'No contracts have been imported yet. Click "Sync Now" to scan SharePoint for contracts.';
+        return 'No contracts yet. Click "Upload Contract" to add one.';
     }
 
     // ─── Utilities ───────────────────────────────────────────────────────────────
