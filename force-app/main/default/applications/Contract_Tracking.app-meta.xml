@@ -9,4 +9,5 @@
     <tabs>contractDashboard</tabs>
     <tabs>Contract_Document__c</tabs>
     <uiType>Lightning</uiType>
+    <formFactors>Large</formFactors>
 </CustomApplication>
