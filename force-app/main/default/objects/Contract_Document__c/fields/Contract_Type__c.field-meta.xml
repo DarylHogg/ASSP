@@ -10,6 +10,21 @@
         <valueSetDefinition>
             <sorted>false</sorted>
             <value>
+                <fullName>MSA</fullName>
+                <default>false</default>
+                <label>MSA</label>
+            </value>
+            <value>
+                <fullName>SOW</fullName>
+                <default>false</default>
+                <label>SOW</label>
+            </value>
+            <value>
+                <fullName>NDA</fullName>
+                <default>false</default>
+                <label>NDA</label>
+            </value>
+            <value>
                 <fullName>SaaS / Software</fullName>
                 <default>false</default>
                 <label>SaaS / Software</label>

@@ -29,34 +29,58 @@ public class ContractProcessingQueueable implements Queueable, Database.AllowsCa
     // ─── Private Helpers ─────────────────────────────────────────────────────────
 
     private void processFile(ContentVersion cv) {
-        String fileName    = cv.Title + (String.isNotBlank(cv.FileExtension) ? '.' + cv.FileExtension : '');
-        String base64Data  = EncodingUtil.base64Encode(cv.VersionData);
+        String fileName   = cv.Title + (String.isNotBlank(cv.FileExtension) ? '.' + cv.FileExtension : '');
+        String base64Data = EncodingUtil.base64Encode(cv.VersionData);
 
-        // Extract contract terms via Claude AI
-        ContractExtractionService.ContractData data =
+        ContractExtractionService.ContractData d =
             ContractExtractionService.extractFromBase64(fileName, base64Data);
 
-        // Build the Contract_Document__c record
         Contract_Document__c doc = new Contract_Document__c(
             Name                 = cv.Title,
-            Extraction_Status__c = (data.extractionSuccessful == true) ? 'Completed' : 'Failed',
+            Extraction_Status__c = (d.extractionSuccessful == true) ? 'Completed' : 'Failed',
             Status__c            = 'Pending Review'
         );
 
-        if (data.extractionSuccessful == true) {
-            doc.Vendor_Name__c                  = data.vendorName;
-            doc.Total_Amount__c                 = data.totalAmount;
-            doc.Currency_Code__c                = data.currencyCode;
-            doc.Contract_Start_Date__c          = data.startDate;
-            doc.Contract_End_Date__c            = data.endDate;
-            doc.Auto_Renew__c                   = data.autoRenew != null ? data.autoRenew : false;
-            doc.Renewal_Period__c               = data.renewalPeriod;
-            doc.Renewal_Notice_Period__c        = data.renewalNoticePeriod;
-            doc.Cancellation_Notice_Due_Date__c = data.cancellationNoticeDueDate;
-            doc.Cancellation_Terms__c           = data.cancellationTerms;
-            doc.Contract_Type__c                = data.contractType;
-            doc.Description__c                  = data.description;
-            doc.Status__c                       = 'Active';
+        if (d.extractionSuccessful == true) {
+            // Identity
+            doc.Vendor_Name__c           = d.vendorName;
+            doc.Contract_Type__c         = d.contractType;
+            doc.Vendor_Contact_Name__c   = d.vendorContactName;
+            doc.Vendor_Contact_Email__c  = d.vendorContactEmail;
+            doc.Vendor_Contact_Phone__c  = d.vendorContactPhone;
+            doc.Internal_Owner__c        = d.internalOwner;
+            // Dates
+            doc.Contract_Start_Date__c          = d.startDate;
+            doc.Contract_End_Date__c            = d.endDate;
+            doc.Auto_Renewal_Date__c            = d.autoRenewalDate;
+            doc.Auto_Renew__c                   = d.autoRenew != null ? d.autoRenew : false;
+            doc.Renewal_Period__c               = d.renewalPeriod;
+            doc.Renewal_Notice_Period__c        = d.renewalNoticePeriod;
+            doc.Cancellation_Notice_Due_Date__c = d.cancellationNoticeDueDate;
+            doc.Cancellation_Terms__c           = d.cancellationTerms;
+            // Financial
+            doc.Total_Amount__c        = d.totalAmount;
+            doc.Currency_Code__c       = d.currencyCode;
+            doc.Payment_Terms__c       = d.paymentTerms;
+            doc.Billing_Frequency__c   = d.billingFrequency;
+            doc.Rate_Card__c           = d.rateCard;
+            // Scope & Obligations
+            doc.Services_Summary__c    = d.servicesSummary;
+            doc.SLA_Terms__c           = d.slaTerms;
+            doc.Liability_Cap__c       = d.liabilityCap;
+            doc.Indemnification__c     = d.indemnification;
+            // Risk & Compliance
+            doc.Governing_Law__c         = d.governingLaw;
+            doc.Data_Privacy_Clauses__c  = d.dataPrivacyClauses;
+            doc.Non_Compete_Scope__c     = d.nonCompeteScope;
+            doc.IP_Ownership__c          = d.ipOwnership;
+            // Execution & Notes
+            doc.Signed_Date__c       = d.signedDate;
+            doc.Signatories__c       = d.signatories;
+            doc.Renewal_Decision__c  = d.renewalDecision;
+            doc.Risk_Notes__c        = d.riskNotes;
+            doc.Description__c       = d.description;
+            doc.Status__c            = 'Active';
         }
 
         insert doc;

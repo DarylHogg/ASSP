@@ -59,6 +59,7 @@
 .status-active     { --slds-c-badge-color-background: #2e844a; --slds-c-badge-text-color: white; }
 .status-expired    { --slds-c-badge-color-background: #706e6b; --slds-c-badge-text-color: white; }
 .status-cancelled  { --slds-c-badge-color-background: #c23934; --slds-c-badge-text-color: white; }
+.status-draft      { --slds-c-badge-color-background: #b0adab; --slds-c-badge-text-color: white; }
 .status-review     { --slds-c-badge-color-background: #7f8de1; --slds-c-badge-text-color: white; }
 .status-renewed    { --slds-c-badge-color-background: #0176d3; --slds-c-badge-text-color: white; }
 
@@ -150,15 +151,37 @@
     background-color: #fafaf9;
 }
 
-.sp-link {
+/* ─── Inline detail rows (ownership / risk sections) ─── */
+.card-section {
+    padding: 0.4rem 0.75rem 0;
+    border-top: 1px dashed #e8e8e8;
+    margin-top: 0.4rem;
+}
+
+.detail-item-inline {
     display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    color: #0176d3;
-    text-decoration: none;
+    gap: 0.4rem;
+    align-items: baseline;
+    margin-bottom: 0.2rem;
     font-size: 0.8rem;
 }
 
-.sp-link:hover {
-    text-decoration: underline;
+.detail-item-inline .detail-label {
+    font-size: 0.7rem;
+    color: #706e6b;
+    min-width: 80px;
 }
+
+.risk-notes {
+    font-size: 0.75rem;
+    color: #c23934;
+    margin: 0.25rem 0 0;
+    font-style: italic;
+    line-height: 1.4;
+}
+
+/* ─── Renewal decision colours ─── */
+.decision-renew        { color: #2e844a; font-weight: 600; }
+.decision-renegotiate  { color: #e68a00; font-weight: 600; }
+.decision-terminate    { color: #c23934; font-weight: 600; }
+.decision-tbd          { color: #706e6b; }

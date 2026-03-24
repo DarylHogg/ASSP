@@ -28,6 +28,8 @@
 
         <!-- Key Details -->
         <div class="card-body">
+
+            <!-- Dates & Value -->
             <div class="detail-grid">
                 <template if:true={contract.Total_Amount__c}>
                     <div class="detail-item highlight-amount">
@@ -36,16 +38,23 @@
                     </div>
                 </template>
 
+                <template if:true={contract.Billing_Frequency__c}>
+                    <div class="detail-item">
+                        <span class="detail-label">Billing</span>
+                        <span class="detail-value">{contract.Billing_Frequency__c}</span>
+                    </div>
+                </template>
+
                 <template if:true={contract.Contract_Start_Date__c}>
                     <div class="detail-item">
-                        <span class="detail-label">Start</span>
+                        <span class="detail-label">Effective</span>
                         <span class="detail-value">{formattedStartDate}</span>
                     </div>
                 </template>
 
                 <template if:true={contract.Contract_End_Date__c}>
                     <div class="detail-item">
-                        <span class="detail-label">End</span>
+                        <span class="detail-label">Expires</span>
                         <span class="detail-value">{formattedEndDate}</span>
                     </div>
                 </template>
@@ -73,8 +82,49 @@
                         <span class={cancellationDateClass}>{formattedCancellationDate}</span>
                     </div>
                 </template>
+
+                <template if:true={contract.Signed_Date__c}>
+                    <div class="detail-item">
+                        <span class="detail-label">Signed</span>
+                        <span class="detail-value">{formattedSignedDate}</span>
+                    </div>
+                </template>
             </div>
 
+            <!-- Ownership -->
+            <template if:true={showOwnership}>
+                <div class="card-section">
+                    <template if:true={contract.Internal_Owner__c}>
+                        <div class="detail-item-inline">
+                            <span class="detail-label">Owner</span>
+                            <span class="detail-value">{contract.Internal_Owner__c}</span>
+                        </div>
+                    </template>
+                    <template if:true={contract.Governing_Law__c}>
+                        <div class="detail-item-inline">
+                            <span class="detail-label">Governing Law</span>
+                            <span class="detail-value">{contract.Governing_Law__c}</span>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+            <!-- Renewal Decision & Risk -->
+            <template if:true={showRenewalRisk}>
+                <div class="card-section">
+                    <template if:true={contract.Renewal_Decision__c}>
+                        <div class="detail-item-inline">
+                            <span class="detail-label">Decision</span>
+                            <span class={renewalDecisionClass}>{contract.Renewal_Decision__c}</span>
+                        </div>
+                    </template>
+                    <template if:true={contract.Risk_Notes__c}>
+                        <p class="risk-notes slds-text-body_small">{truncatedRiskNotes}</p>
+                    </template>
+                </div>
+            </template>
+
+            <!-- Description -->
             <template if:true={contract.Description__c}>
                 <p class="description-text slds-text-body_small">{contract.Description__c}</p>
             </template>

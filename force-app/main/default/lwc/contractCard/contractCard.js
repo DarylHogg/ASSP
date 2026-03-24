@@ -1,13 +1,6 @@
 import { LightningElement, api } from 'lwc';
 import { NavigationMixin } from 'lightning/navigation';
 
-const CURRENCY_FORMAT = new Intl.NumberFormat('en-US', {
-    style:    'currency',
-    currency: 'USD',
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 2
-});
-
 const DATE_FORMAT = new Intl.DateTimeFormat('en-US', {
     year:  'numeric',
     month: 'short',
@@ -16,6 +9,9 @@ const DATE_FORMAT = new Intl.DateTimeFormat('en-US', {
 });
 
 const CONTRACT_TYPE_ICONS = {
+    'MSA':                     'standard:contract',
+    'SOW':                     'standard:work_order',
+    'NDA':                     'standard:shield',
     'SaaS / Software':         'standard:product',
     'Service Agreement':       'standard:service_contract',
     'License':                 'standard:approval',
@@ -27,11 +23,19 @@ const CONTRACT_TYPE_ICONS = {
 };
 
 const STATUS_BADGE_CLASSES = {
+    'Draft':          'status-draft',
     'Active':         'status-active',
     'Expired':        'status-expired',
     'Cancelled':      'status-cancelled',
     'Pending Review': 'status-review',
     'Renewed':        'status-renewed'
+};
+
+const RENEWAL_DECISION_CLASSES = {
+    'Terminate':    'detail-value decision-terminate',
+    'Renegotiate':  'detail-value decision-renegotiate',
+    'Renew':        'detail-value decision-renew',
+    'TBD':          'detail-value decision-tbd'
 };
 
 export default class ContractCard extends NavigationMixin(LightningElement) {
@@ -63,13 +67,21 @@ export default class ContractCard extends NavigationMixin(LightningElement) {
             && !this.contract.Cancellation_Deadline_Alert__c;
     }
 
+    get showOwnership() {
+        return this.contract.Internal_Owner__c || this.contract.Governing_Law__c;
+    }
+
+    get showRenewalRisk() {
+        return this.contract.Renewal_Decision__c || this.contract.Risk_Notes__c;
+    }
+
     get formattedAmount() {
         if (!this.contract.Total_Amount__c) return null;
         const currency = this.contract.Currency_Code__c || 'USD';
         try {
             const fmt = new Intl.NumberFormat('en-US', {
-                style: 'currency',
-                currency: currency,
+                style:                 'currency',
+                currency:              currency,
                 minimumFractionDigits: 0,
                 maximumFractionDigits: 2
             });
@@ -79,20 +91,23 @@ export default class ContractCard extends NavigationMixin(LightningElement) {
         }
     }
 
-    get formattedStartDate() {
-        return this.formatDate(this.contract.Contract_Start_Date__c);
-    }
-
-    get formattedEndDate() {
-        return this.formatDate(this.contract.Contract_End_Date__c);
-    }
-
-    get formattedCancellationDate() {
-        return this.formatDate(this.contract.Cancellation_Notice_Due_Date__c);
-    }
+    get formattedStartDate()        { return this.formatDate(this.contract.Contract_Start_Date__c); }
+    get formattedEndDate()          { return this.formatDate(this.contract.Contract_End_Date__c); }
+    get formattedCancellationDate() { return this.formatDate(this.contract.Cancellation_Notice_Due_Date__c); }
+    get formattedSignedDate()       { return this.formatDate(this.contract.Signed_Date__c); }
 
     get cancellationDateClass() {
         return 'detail-value' + (this.contract.Cancellation_Deadline_Alert__c ? ' text-danger' : '');
+    }
+
+    get renewalDecisionClass() {
+        return RENEWAL_DECISION_CLASSES[this.contract.Renewal_Decision__c] || 'detail-value';
+    }
+
+    get truncatedRiskNotes() {
+        const notes = this.contract.Risk_Notes__c;
+        if (!notes) return '';
+        return notes.length > 120 ? notes.substring(0, 120) + '…' : notes;
     }
 
     // ─── Event Handlers ──────────────────────────────────────────────────────────
@@ -110,7 +125,6 @@ export default class ContractCard extends NavigationMixin(LightningElement) {
     formatDate(dateStr) {
         if (!dateStr) return null;
         try {
-            // Salesforce date fields come as 'YYYY-MM-DD'
             const [year, month, day] = dateStr.split('-').map(Number);
             const d = new Date(Date.UTC(year, month - 1, day));
             return DATE_FORMAT.format(d);
