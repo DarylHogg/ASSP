@@ -3,7 +3,6 @@
     <description>Grants access to the ASSP Contract Tracking application. Assign to all users who need to view or manage contracts.</description>
     <label>Contract Tracking User</label>
     <hasActivationRequired>false</hasActivationRequired>
-    <userLicense>Salesforce</userLicense>
 
     <!-- Contract_Document__c -->
     <objectPermissions>
@@ -27,7 +26,6 @@
         <viewAllRecords>true</viewAllRecords>
     </objectPermissions>
 
-    <!-- Apex Classes -->
     <classAccesses>
         <apexClass>ContractDashboardController</apexClass>
         <enabled>true</enabled>

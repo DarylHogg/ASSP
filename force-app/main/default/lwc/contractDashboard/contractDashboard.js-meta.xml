@@ -6,10 +6,6 @@
         <target>lightning__AppPage</target>
         <target>lightning__Tab</target>
     </targets>
-    <targetConfigs>
-        <targetConfig targets="lightning__AppPage,lightning__Tab">
-        </targetConfig>
-    </targetConfigs>
     <masterLabel>Contract Dashboard</masterLabel>
     <description>ASSP Contract Tracker dashboard — monitors SharePoint for contracts and displays key terms, renewals, and cancellation deadlines.</description>
 </LightningComponentBundle>

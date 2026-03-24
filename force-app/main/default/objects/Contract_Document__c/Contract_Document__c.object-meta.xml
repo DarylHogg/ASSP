@@ -15,6 +15,7 @@
         <searchResultsAdditionalFields>Contract_End_Date__c</searchResultsAdditionalFields>
         <searchResultsAdditionalFields>Total_Amount__c</searchResultsAdditionalFields>
     </searchLayouts>
+    <deploymentStatus>Deployed</deploymentStatus>
     <sharingModel>ReadWrite</sharingModel>
     <visibility>Public</visibility>
 </CustomObject>

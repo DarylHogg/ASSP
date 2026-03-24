@@ -3,7 +3,6 @@
     <description>Full administrative access to the ASSP Contract Tracking application, including the ability to delete records and manage the sync schedule.</description>
     <label>Contract Tracking Admin</label>
     <hasActivationRequired>false</hasActivationRequired>
-    <userLicense>Salesforce</userLicense>
 
     <!-- Contract_Document__c — full CRUD -->
     <objectPermissions>
@@ -27,7 +26,6 @@
         <viewAllRecords>true</viewAllRecords>
     </objectPermissions>
 
-    <!-- Apex Classes -->
     <classAccesses>
         <apexClass>ContractDashboardController</apexClass>
         <enabled>true</enabled>
