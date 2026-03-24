@@ -32,8 +32,15 @@ public class ContractProcessingQueueable implements Queueable, Database.AllowsCa
         String fileName   = cv.Title + (String.isNotBlank(cv.FileExtension) ? '.' + cv.FileExtension : '');
         String base64Data = EncodingUtil.base64Encode(cv.VersionData);
 
-        ContractExtractionService.ContractData d =
-            ContractExtractionService.extractFromBase64(fileName, base64Data);
+        ContractExtractionService.ContractData d;
+        try {
+            d = ContractExtractionService.extractFromBase64(fileName, base64Data);
+        } catch (Exception e) {
+            d = new ContractExtractionService.ContractData();
+            d.extractionSuccessful = false;
+            d.extractionError = e.getMessage();
+            System.debug('AI extraction failed for ' + fileName + ': ' + e.getMessage());
+        }
 
         Contract_Document__c doc = new Contract_Document__c(
             Name                 = cv.Title,
