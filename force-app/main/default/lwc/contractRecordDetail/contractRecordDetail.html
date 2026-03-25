@@ -1,0 +1,304 @@
+<template>
+    <template if:true={isLoading}>
+        <lightning-spinner alternative-text="Loading" size="medium"></lightning-spinner>
+    </template>
+
+    <template if:true={error}>
+        <div class="error-box">Unable to load contract: {error}</div>
+    </template>
+
+    <template if:true={contract}>
+        <div class="record-detail">
+
+            <!-- Header -->
+            <div class="detail-header">
+                <div class="header-title-row">
+                    <lightning-icon icon-name={contractIcon} size="medium" class="header-icon"></lightning-icon>
+                    <div class="header-text">
+                        <h1 class="contract-title">{contract.Name}</h1>
+                        <p class="vendor-subtitle">{contract.Vendor_Name__c}</p>
+                    </div>
+                </div>
+                <div class="header-badges">
+                    <template if:true={contract.Contract_Type__c}>
+                        <lightning-badge label={contract.Contract_Type__c} class="type-badge"></lightning-badge>
+                    </template>
+                    <template if:true={contract.Status__c}>
+                        <lightning-badge label={contract.Status__c} class={statusBadgeClass}></lightning-badge>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Alert Banners -->
+            <template if:true={contract.Cancellation_Deadline_Alert__c}>
+                <div class="alert-banner alert-high">
+                    <lightning-icon icon-name="utility:error" size="xx-small"></lightning-icon>
+                    Cancellation deadline in {contract.Days_Until_Cancellation_Deadline__c} day(s) — action required!
+                </div>
+            </template>
+            <template if:true={showExpiryAlert}>
+                <div class="alert-banner alert-medium">
+                    <lightning-icon icon-name="utility:warning" size="xx-small"></lightning-icon>
+                    Contract expires in {contract.Days_Until_Expiry__c} day(s)
+                </div>
+            </template>
+
+            <!-- Contract Overview -->
+            <div class="section">
+                <h2 class="section-title">Contract Overview</h2>
+                <div class="field-grid">
+                    <template if:true={contract.Internal_Owner__c}>
+                        <div class="field-item">
+                            <span class="field-label">Owner</span>
+                            <span class="field-value">{contract.Internal_Owner__c}</span>
+                        </div>
+                    </template>
+                    <template if:true={contract.Governing_Law__c}>
+                        <div class="field-item">
+                            <span class="field-label">Governing Law</span>
+                            <span class="field-value">{contract.Governing_Law__c}</span>
+                        </div>
+                    </template>
+                    <template if:true={contract.Renewal_Decision__c}>
+                        <div class="field-item">
+                            <span class="field-label">Decision</span>
+                            <span class={renewalDecisionClass}>{contract.Renewal_Decision__c}</span>
+                        </div>
+                    </template>
+                    <template if:true={contract.Extraction_Status__c}>
+                        <div class="field-item">
+                            <span class="field-label">Extraction</span>
+                            <span class="field-value">{contract.Extraction_Status__c}</span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Key Dates -->
+            <div class="section">
+                <h2 class="section-title">Key Dates</h2>
+                <div class="field-grid">
+                    <template if:true={contract.Contract_Start_Date__c}>
+                        <div class="field-item">
+                            <span class="field-label">Effective Date</span>
+                            <span class="field-value">{formattedStartDate}</span>
+                        </div>
+                    </template>
+                    <template if:true={contract.Contract_End_Date__c}>
+                        <div class="field-item">
+                            <span class="field-label">Expiration Date</span>
+                            <span class="field-value">{formattedEndDate}</span>
+                        </div>
+                    </template>
+                    <template if:true={contract.Signed_Date__c}>
+                        <div class="field-item">
+                            <span class="field-label">Signed Date</span>
+                            <span class="field-value">{formattedSignedDate}</span>
+                        </div>
+                    </template>
+                    <template if:true={contract.Days_Until_Expiry__c}>
+                        <div class="field-item">
+                            <span class="field-label">Days Until Expiry</span>
+                            <span class="field-value">{contract.Days_Until_Expiry__c}</span>
+                        </div>
+                    </template>
+                    <template if:true={contract.Cancellation_Notice_Due_Date__c}>
+                        <div class="field-item">
+                            <span class="field-label">Cancel By</span>
+                            <span class={cancellationDateClass}>{formattedCancellationDate}</span>
+                        </div>
+                    </template>
+                    <template if:true={contract.Auto_Renewal_Date__c}>
+                        <div class="field-item">
+                            <span class="field-label">Auto-Renewal Date</span>
+                            <span class="field-value">{formattedAutoRenewalDate}</span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Financial Terms -->
+            <div class="section">
+                <h2 class="section-title">Financial Terms</h2>
+                <div class="field-grid">
+                    <template if:true={contract.Total_Amount__c}>
+                        <div class="field-item">
+                            <span class="field-label">Contract Value</span>
+                            <span class="field-value amount">{formattedAmount}</span>
+                        </div>
+                    </template>
+                    <template if:true={contract.Billing_Frequency__c}>
+                        <div class="field-item">
+                            <span class="field-label">Billing Frequency</span>
+                            <span class="field-value">{contract.Billing_Frequency__c}</span>
+                        </div>
+                    </template>
+                    <template if:true={contract.Payment_Terms__c}>
+                        <div class="field-item">
+                            <span class="field-label">Payment Terms</span>
+                            <span class="field-value">{contract.Payment_Terms__c}</span>
+                        </div>
+                    </template>
+                    <template if:true={contract.Currency_Code__c}>
+                        <div class="field-item">
+                            <span class="field-label">Currency</span>
+                            <span class="field-value">{contract.Currency_Code__c}</span>
+                        </div>
+                    </template>
+                    <template if:true={contract.Rate_Card__c}>
+                        <div class="field-item field-item-full">
+                            <span class="field-label">Rate Card</span>
+                            <span class="field-value">{contract.Rate_Card__c}</span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Renewal & Cancellation -->
+            <div class="section">
+                <h2 class="section-title">Renewal &amp; Cancellation</h2>
+                <div class="field-grid">
+                    <div class="field-item">
+                        <span class="field-label">Auto-Renew</span>
+                        <span class="field-value">{autoRenewLabel}</span>
+                    </div>
+                    <template if:true={contract.Renewal_Period__c}>
+                        <div class="field-item">
+                            <span class="field-label">Renewal Period</span>
+                            <span class="field-value">{contract.Renewal_Period__c}</span>
+                        </div>
+                    </template>
+                    <template if:true={contract.Renewal_Notice_Period__c}>
+                        <div class="field-item">
+                            <span class="field-label">Notice Required</span>
+                            <span class="field-value">{contract.Renewal_Notice_Period__c}</span>
+                        </div>
+                    </template>
+                    <template if:true={contract.Cancellation_Terms__c}>
+                        <div class="field-item field-item-full">
+                            <span class="field-label">Cancellation Terms</span>
+                            <span class="field-value">{contract.Cancellation_Terms__c}</span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
+            <!-- Vendor Contact -->
+            <template if:true={showVendorContact}>
+                <div class="section">
+                    <h2 class="section-title">Vendor Contact</h2>
+                    <div class="field-grid">
+                        <template if:true={contract.Vendor_Contact_Name__c}>
+                            <div class="field-item">
+                                <span class="field-label">Name</span>
+                                <span class="field-value">{contract.Vendor_Contact_Name__c}</span>
+                            </div>
+                        </template>
+                        <template if:true={contract.Vendor_Contact_Email__c}>
+                            <div class="field-item">
+                                <span class="field-label">Email</span>
+                                <span class="field-value">{contract.Vendor_Contact_Email__c}</span>
+                            </div>
+                        </template>
+                        <template if:true={contract.Vendor_Contact_Phone__c}>
+                            <div class="field-item">
+                                <span class="field-label">Phone</span>
+                                <span class="field-value">{contract.Vendor_Contact_Phone__c}</span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Legal & Compliance -->
+            <template if:true={showLegal}>
+                <div class="section">
+                    <h2 class="section-title">Legal &amp; Compliance</h2>
+                    <div class="field-grid">
+                        <template if:true={contract.Liability_Cap__c}>
+                            <div class="field-item">
+                                <span class="field-label">Liability Cap</span>
+                                <span class="field-value">{formattedLiabilityCap}</span>
+                            </div>
+                        </template>
+                        <template if:true={contract.Signatories__c}>
+                            <div class="field-item field-item-full">
+                                <span class="field-label">Signatories</span>
+                                <span class="field-value">{contract.Signatories__c}</span>
+                            </div>
+                        </template>
+                        <template if:true={contract.Indemnification__c}>
+                            <div class="field-item field-item-full">
+                                <span class="field-label">Indemnification</span>
+                                <span class="field-value">{contract.Indemnification__c}</span>
+                            </div>
+                        </template>
+                        <template if:true={contract.IP_Ownership__c}>
+                            <div class="field-item field-item-full">
+                                <span class="field-label">IP Ownership</span>
+                                <span class="field-value">{contract.IP_Ownership__c}</span>
+                            </div>
+                        </template>
+                        <template if:true={contract.Non_Compete_Scope__c}>
+                            <div class="field-item field-item-full">
+                                <span class="field-label">Non-Compete</span>
+                                <span class="field-value">{contract.Non_Compete_Scope__c}</span>
+                            </div>
+                        </template>
+                        <template if:true={contract.Data_Privacy_Clauses__c}>
+                            <div class="field-item field-item-full">
+                                <span class="field-label">Data Privacy</span>
+                                <span class="field-value">{contract.Data_Privacy_Clauses__c}</span>
+                            </div>
+                        </template>
+                        <template if:true={contract.SLA_Terms__c}>
+                            <div class="field-item field-item-full">
+                                <span class="field-label">SLA Terms</span>
+                                <span class="field-value">{contract.SLA_Terms__c}</span>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Services & Notes -->
+            <template if:true={showServices}>
+                <div class="section">
+                    <h2 class="section-title">Services &amp; Notes</h2>
+                    <template if:true={contract.Services_Summary__c}>
+                        <div class="field-item field-item-full">
+                            <span class="field-label">Services Summary</span>
+                            <span class="field-value">{contract.Services_Summary__c}</span>
+                        </div>
+                    </template>
+                    <template if:true={contract.Description__c}>
+                        <div class="field-item field-item-full" style="margin-top: 0.75rem;">
+                            <span class="field-label">Description</span>
+                            <span class="field-value">{contract.Description__c}</span>
+                        </div>
+                    </template>
+                    <template if:true={contract.Risk_Notes__c}>
+                        <div class="field-item field-item-full risk-section" style="margin-top: 0.75rem;">
+                            <span class="field-label">Risk Notes</span>
+                            <span class="field-value risk-text">{contract.Risk_Notes__c}</span>
+                        </div>
+                    </template>
+                </div>
+            </template>
+
+            <!-- SharePoint -->
+            <template if:true={contract.SharePoint_URL__c}>
+                <div class="section">
+                    <h2 class="section-title">Document</h2>
+                    <div class="field-item">
+                        <span class="field-label">SharePoint Link</span>
+                        <a href={contract.SharePoint_URL__c} target="_blank" class="field-value link-value">
+                            Open in SharePoint
+                        </a>
+                    </div>
+                </div>
+            </template>
+
+        </div>
+    </template>
+</template>

@@ -103,6 +103,36 @@ public with sharing class ContractDashboardController {
         return page;
     }
 
+    // ─── Single Record ───────────────────────────────────────────────────────────
+
+    /**
+     * Returns a single Contract_Document__c record with all fields populated.
+     */
+    @AuraEnabled(cacheable=true)
+    public static Contract_Document__c getContractById(Id recordId) {
+        List<Contract_Document__c> records = [
+            SELECT Id, Name, Vendor_Name__c, Contract_Type__c, Status__c,
+                   Total_Amount__c, Currency_Code__c, Contract_Start_Date__c,
+                   Contract_End_Date__c, Auto_Renew__c, Renewal_Period__c,
+                   Auto_Renewal_Date__c, Renewal_Notice_Period__c,
+                   Cancellation_Notice_Due_Date__c, Is_Expiring_Soon__c,
+                   Cancellation_Deadline_Alert__c, Days_Until_Expiry__c,
+                   Days_Until_Cancellation_Deadline__c, Extraction_Status__c,
+                   Vendor_Contact_Name__c, Vendor_Contact_Email__c, Vendor_Contact_Phone__c,
+                   Internal_Owner__c, Payment_Terms__c, Billing_Frequency__c,
+                   Signed_Date__c, Governing_Law__c, Renewal_Decision__c,
+                   Risk_Notes__c, Description__c, Services_Summary__c,
+                   SLA_Terms__c, Liability_Cap__c, Indemnification__c,
+                   Data_Privacy_Clauses__c, Non_Compete_Scope__c, IP_Ownership__c,
+                   Signatories__c, Rate_Card__c, SharePoint_URL__c,
+                   CreatedDate, LastModifiedDate
+            FROM Contract_Document__c
+            WHERE Id = :recordId
+            LIMIT 1
+        ];
+        return records.isEmpty() ? null : records[0];
+    }
+
     // ─── File Upload ─────────────────────────────────────────────────────────────
 
     /**

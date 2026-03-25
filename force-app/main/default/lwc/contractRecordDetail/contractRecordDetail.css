@@ -1,0 +1,152 @@
+.record-detail {
+    padding: 0;
+    font-family: 'Salesforce Sans', Arial, sans-serif;
+}
+
+/* ─── Header ─── */
+.detail-header {
+    background: white;
+    padding: 1.25rem 1.5rem 1rem;
+    border-bottom: 1px solid #e4e4e4;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.header-title-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.header-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.contract-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #181818;
+    margin: 0;
+}
+
+.vendor-subtitle {
+    font-size: 0.9rem;
+    color: #706e6b;
+    margin: 0.1rem 0 0;
+}
+
+.header-badges {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.type-badge {
+    --slds-c-badge-color-background: #f3f2f2;
+    --slds-c-badge-text-color: #444;
+}
+
+.status-active     { --slds-c-badge-color-background: #2e844a; --slds-c-badge-text-color: white; }
+.status-expired    { --slds-c-badge-color-background: #706e6b; --slds-c-badge-text-color: white; }
+.status-cancelled  { --slds-c-badge-color-background: #c23934; --slds-c-badge-text-color: white; }
+.status-draft      { --slds-c-badge-color-background: #b0adab; --slds-c-badge-text-color: white; }
+.status-review     { --slds-c-badge-color-background: #7f8de1; --slds-c-badge-text-color: white; }
+.status-renewed    { --slds-c-badge-color-background: #0176d3; --slds-c-badge-text-color: white; }
+
+/* ─── Alert Banners ─── */
+.alert-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.alert-high   { background: #fce7e6; color: #c23934; }
+.alert-medium { background: #fff3e0; color: #a86403; }
+
+/* ─── Sections ─── */
+.section {
+    background: white;
+    margin-top: 0.75rem;
+    padding: 1rem 1.5rem;
+    border-top: 1px solid #e4e4e4;
+    border-bottom: 1px solid #e4e4e4;
+}
+
+.section-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #706e6b;
+    margin: 0 0 0.75rem;
+}
+
+/* ─── Field Grid ─── */
+.field-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem 2rem;
+}
+
+.field-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.field-item-full {
+    grid-column: 1 / -1;
+}
+
+.field-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #706e6b;
+    margin-bottom: 0.2rem;
+}
+
+.field-value {
+    font-size: 0.9rem;
+    color: #181818;
+    line-height: 1.5;
+}
+
+.field-value.amount {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0176d3;
+}
+
+.field-value.text-danger {
+    color: #c23934;
+    font-weight: 600;
+}
+
+.risk-section { border-top: none; }
+.risk-text    { color: #c23934; font-style: italic; line-height: 1.5; }
+
+.link-value { color: #0176d3; text-decoration: none; }
+.link-value:hover { text-decoration: underline; }
+
+/* ─── Renewal decision colours ─── */
+.decision-renew        { color: #2e844a; font-weight: 600; font-size: 0.9rem; }
+.decision-renegotiate  { color: #e68a00; font-weight: 600; font-size: 0.9rem; }
+.decision-terminate    { color: #c23934; font-weight: 600; font-size: 0.9rem; }
+.decision-tbd          { color: #706e6b; font-size: 0.9rem; }
+
+/* ─── Error ─── */
+.error-box {
+    padding: 1rem;
+    color: #c23934;
+    background: #fce7e6;
+    border-radius: 0.25rem;
+    margin: 1rem;
+}
