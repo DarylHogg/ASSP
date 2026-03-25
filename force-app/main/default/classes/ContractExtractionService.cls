@@ -2,15 +2,20 @@
  * Uses the Anthropic Claude API to extract key contract terms from a document
  * (PDF or Word) provided as base64-encoded content.
  *
- * Requires a Named Credential named "ClaudeAI" configured with:
- *   - Endpoint: https://api.anthropic.com
- *   - Custom auth headers: x-api-key (your Anthropic API key)
- *                          anthropic-version: 2023-06-01
+ * Requires a Contract_Config__mdt record with DeveloperName = 'Default'
+ * and Anthropic_API_Key__c set to your Anthropic API key.
+ *
+ * Setup: Custom Metadata Types → Contract Config → Manage Records → New
+ *   Label: Default  |  Name: Default  |  Anthropic API Key: sk-ant-...
+ *
+ * Also requires the ClaudeAI Named Credential remote site to be allowed
+ * (Setup → Remote Site Settings → add https://api.anthropic.com).
  */
 public with sharing class ContractExtractionService {
 
-    private static final String NAMED_CREDENTIAL = 'callout:ClaudeAI';
+    private static final String CLAUDE_ENDPOINT  = 'https://api.anthropic.com';
     private static final String CLAUDE_MODEL     = 'claude-opus-4-6';
+    private static final String ANTHROPIC_VERSION = '2023-06-01';
     private static final Integer MAX_TOKENS      = 4096;
     private static final Integer CALLOUT_TIMEOUT = 120000; // 2 minutes
 
@@ -85,10 +90,19 @@ public with sharing class ContractExtractionService {
             }
         };
 
+        String apiKey = getApiKey();
+        if (String.isBlank(apiKey)) {
+            throw new ContractExtractionException(
+                'Anthropic API key not configured. Go to Setup → Custom Metadata Types → Contract Config → Manage Records and create a record named "Default" with your API key.'
+            );
+        }
+
         HttpRequest req = new HttpRequest();
-        req.setEndpoint(NAMED_CREDENTIAL + '/v1/messages');
+        req.setEndpoint(CLAUDE_ENDPOINT + '/v1/messages');
         req.setMethod('POST');
         req.setHeader('Content-Type', 'application/json');
+        req.setHeader('x-api-key', apiKey);
+        req.setHeader('anthropic-version', ANTHROPIC_VERSION);
         req.setTimeout(CALLOUT_TIMEOUT);
         req.setBody(JSON.serialize(requestBody));
 
@@ -269,6 +283,16 @@ public with sharing class ContractExtractionService {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    private static String getApiKey() {
+        List<Contract_Config__mdt> configs = [
+            SELECT Anthropic_API_Key__c
+            FROM   Contract_Config__mdt
+            WHERE  DeveloperName = 'Default'
+            LIMIT  1
+        ];
+        return configs.isEmpty() ? null : configs[0].Anthropic_API_Key__c;
     }
 
     private static String resolveMediaType(String fileName) {
