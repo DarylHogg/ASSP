@@ -296,13 +296,6 @@
 
     <!-- ─── Related Lists ─── -->
     <relatedLists>
-        <fields>FILENAME</fields>
-        <fields>CREATED_DATE</fields>
-        <fields>SIZE</fields>
-        <fields>CREATED_BY_ALIAS</fields>
-        <relatedList>RelatedContentFiles</relatedList>
-    </relatedLists>
-    <relatedLists>
         <relatedList>RelatedActivityList</relatedList>
     </relatedLists>
     <relatedLists>

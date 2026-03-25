@@ -34,14 +34,5 @@
     <flexiPageRegions>
         <name>sidebar</name>
         <type>Region</type>
-        <itemInstances>
-            <componentInstance>
-                <componentName>forceContent:relatedListSingle</componentName>
-                <componentInstanceProperties>
-                    <name>relatedListId</name>
-                    <value>ContentDocumentLinks</value>
-                </componentInstanceProperties>
-            </componentInstance>
-        </itemInstances>
     </flexiPageRegions>
 </FlexiPage>
