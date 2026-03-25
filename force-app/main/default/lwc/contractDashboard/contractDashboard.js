@@ -180,6 +180,7 @@ export default class ContractDashboard extends LightningElement {
         ];
     }
 
+    get selectedFileName() { return this._selectedFile ? this._selectedFile.name : null; }
     get hasContracts()   { return this.contracts && this.contracts.length > 0; }
     get showPagination() { return this.totalPages > 1; }
     get isFirstPage()    { return this.pageNumber <= 1; }

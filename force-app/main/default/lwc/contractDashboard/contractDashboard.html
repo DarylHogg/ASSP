@@ -144,6 +144,12 @@
                         accept=".pdf,.docx,.doc"
                         onchange={handleFileChange}>
                     </lightning-input>
+                    <template if:true={selectedFileName}>
+                        <p class="slds-m-top_x-small slds-text-body_small">
+                            <lightning-icon icon-name="utility:attach" size="x-small" class="slds-m-right_xx-small"></lightning-icon>
+                            {selectedFileName}
+                        </p>
+                    </template>
                     <template if:true={uploadError}>
                         <p class="slds-text-color_error slds-m-top_small">{uploadError}</p>
                     </template>
