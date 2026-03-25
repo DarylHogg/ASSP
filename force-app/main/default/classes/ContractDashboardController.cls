@@ -133,6 +133,47 @@ public with sharing class ContractDashboardController {
         return records.isEmpty() ? null : records[0];
     }
 
+    // ─── Linked Files ────────────────────────────────────────────────────────────
+
+    public class FileInfo {
+        @AuraEnabled public String fileId       { get; set; }
+        @AuraEnabled public String fileName     { get; set; }
+        @AuraEnabled public String fileSize     { get; set; }
+        @AuraEnabled public String downloadUrl  { get; set; }
+        @AuraEnabled public String fileType     { get; set; }
+    }
+
+    @AuraEnabled(cacheable=true)
+    public static List<FileInfo> getLinkedFiles(Id recordId) {
+        List<FileInfo> results = new List<FileInfo>();
+        for (ContentDocumentLink cdl : [
+            SELECT ContentDocument.Id, ContentDocument.Title,
+                   ContentDocument.FileExtension, ContentDocument.ContentSize,
+                   ContentDocument.LatestPublishedVersionId
+            FROM   ContentDocumentLink
+            WHERE  LinkedEntityId = :recordId
+            ORDER BY ContentDocument.CreatedDate DESC
+        ]) {
+            FileInfo f = new FileInfo();
+            f.fileId      = cdl.ContentDocument.LatestPublishedVersionId;
+            f.fileName    = cdl.ContentDocument.Title
+                          + (String.isNotBlank(cdl.ContentDocument.FileExtension)
+                             ? '.' + cdl.ContentDocument.FileExtension : '');
+            f.fileType    = cdl.ContentDocument.FileExtension != null
+                          ? cdl.ContentDocument.FileExtension.toUpperCase() : '';
+            Long bytes    = cdl.ContentDocument.ContentSize;
+            f.fileSize    = bytes != null
+                          ? (bytes < 1048576
+                             ? String.valueOf((bytes / 1024).intValue()) + ' KB'
+                             : String.valueOf((bytes / 1048576.0).setScale(1)) + ' MB')
+                          : '';
+            f.downloadUrl = '/sfc/servlet.shepherd/version/download/'
+                          + cdl.ContentDocument.LatestPublishedVersionId;
+            results.add(f);
+        }
+        return results;
+    }
+
     // ─── File Upload ─────────────────────────────────────────────────────────────
 
     /**

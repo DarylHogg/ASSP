@@ -142,6 +142,37 @@
 .decision-terminate    { color: #c23934; font-weight: 600; font-size: 0.9rem; }
 .decision-tbd          { color: #706e6b; font-size: 0.9rem; }
 
+/* ─── Files ─── */
+.file-row {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f3f2f2;
+}
+
+.file-row:last-child { border-bottom: none; }
+
+.file-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.file-name {
+    font-size: 0.9rem;
+    color: #0176d3;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.file-name:hover { text-decoration: underline; }
+
+.file-meta {
+    font-size: 0.75rem;
+    color: #706e6b;
+    margin-top: 0.1rem;
+}
+
 /* ─── Error ─── */
 .error-box {
     padding: 1rem;

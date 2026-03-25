@@ -289,13 +289,29 @@
             <!-- SharePoint -->
             <template if:true={contract.SharePoint_URL__c}>
                 <div class="section">
-                    <h2 class="section-title">Document</h2>
+                    <h2 class="section-title">SharePoint</h2>
                     <div class="field-item">
-                        <span class="field-label">SharePoint Link</span>
+                        <span class="field-label">Link</span>
                         <a href={contract.SharePoint_URL__c} target="_blank" class="field-value link-value">
                             Open in SharePoint
                         </a>
                     </div>
+                </div>
+            </template>
+
+            <!-- Linked Files -->
+            <template if:true={hasFiles}>
+                <div class="section">
+                    <h2 class="section-title">Files</h2>
+                    <template for:each={files} for:item="file">
+                        <div key={file.fileId} class="file-row">
+                            <lightning-icon icon-name={file.icon} size="small" class="file-icon"></lightning-icon>
+                            <div class="file-info">
+                                <a href={file.downloadUrl} target="_blank" class="file-name">{file.fileName}</a>
+                                <span class="file-meta">{file.fileType} &bull; {file.fileSize}</span>
+                            </div>
+                        </div>
+                    </template>
                 </div>
             </template>
 

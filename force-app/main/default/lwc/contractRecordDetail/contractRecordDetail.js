@@ -1,5 +1,6 @@
 import { LightningElement, api, wire } from 'lwc';
-import getContractById from '@salesforce/apex/ContractDashboardController.getContractById';
+import getContractById  from '@salesforce/apex/ContractDashboardController.getContractById';
+import getLinkedFiles   from '@salesforce/apex/ContractDashboardController.getLinkedFiles';
 
 const DATE_FORMAT = new Intl.DateTimeFormat('en-US', {
     year:     'numeric',
@@ -35,6 +36,7 @@ export default class ContractRecordDetail extends LightningElement {
     @api recordId;
 
     contract;
+    files = [];
     error;
     isLoading = true;
 
@@ -49,6 +51,21 @@ export default class ContractRecordDetail extends LightningElement {
             this.contract = undefined;
         }
     }
+
+    @wire(getLinkedFiles, { recordId: '$recordId' })
+    wiredFiles({ data }) {
+        if (data) {
+            this.files = data.map(f => ({
+                ...f,
+                icon: f.fileType === 'PDF'  ? 'doctype:pdf'
+                    : f.fileType === 'DOCX' ? 'doctype:word'
+                    : f.fileType === 'DOC'  ? 'doctype:word'
+                    : 'doctype:unknown'
+            }));
+        }
+    }
+
+    get hasFiles() { return this.files && this.files.length > 0; }
 
     // ─── Icons / Badges ──────────────────────────────────────────────────────────
     get contractIcon() {
