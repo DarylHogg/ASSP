@@ -7,53 +7,41 @@
     </template>
     <type>RecordPage</type>
 
-    <!-- ─── Header: Highlights Panel ─── -->
     <flexiPageRegions>
-        <itemInstances>
-            <componentInstance>
-                <componentInstanceProperties>
-                    <name>showTitle</name>
-                    <value>false</value>
-                </componentInstanceProperties>
-                <componentName>force:highlightsPanel</componentName>
-            </componentInstance>
-        </itemInstances>
         <name>header</name>
         <type>Region</type>
-    </flexiPageRegions>
-
-    <!-- ─── Main: Record Detail ─── -->
-    <flexiPageRegions>
         <itemInstances>
             <componentInstance>
+                <componentName>force:highlightsPanel</componentName>
                 <componentInstanceProperties>
                     <name>showTitle</name>
                     <value>false</value>
                 </componentInstanceProperties>
+            </componentInstance>
+        </itemInstances>
+    </flexiPageRegions>
+
+    <flexiPageRegions>
+        <name>main</name>
+        <type>Region</type>
+        <itemInstances>
+            <componentInstance>
                 <componentName>force:recordDetail</componentName>
             </componentInstance>
         </itemInstances>
-        <name>main</name>
-        <type>Region</type>
     </flexiPageRegions>
 
-    <!-- ─── Sidebar: Files + Activity ─── -->
     <flexiPageRegions>
+        <name>sidebar</name>
+        <type>Region</type>
         <itemInstances>
             <componentInstance>
+                <componentName>forceContent:relatedListSingle</componentName>
                 <componentInstanceProperties>
                     <name>relatedListId</name>
                     <value>ContentDocumentLinks</value>
                 </componentInstanceProperties>
-                <componentName>forceContent:relatedListSingle</componentName>
             </componentInstance>
         </itemInstances>
-        <itemInstances>
-            <componentInstance>
-                <componentName>force:relatedListContainer</componentName>
-            </componentInstance>
-        </itemInstances>
-        <name>sidebar</name>
-        <type>Region</type>
     </flexiPageRegions>
 </FlexiPage>
