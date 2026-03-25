@@ -7,5 +7,5 @@
         <target>lightning__Tab</target>
     </targets>
     <masterLabel>Contract Dashboard</masterLabel>
-    <description>ASSP Contract Tracker dashboard — monitors SharePoint for contracts and displays key terms, renewals, and cancellation deadlines.</description>
+    <description>ASSP Contract Tracker dashboard — displays contract key terms, renewals, and cancellation deadlines.</description>
 </LightningComponentBundle>

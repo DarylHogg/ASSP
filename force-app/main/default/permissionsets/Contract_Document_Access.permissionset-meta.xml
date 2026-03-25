@@ -204,14 +204,5 @@
         <field>Contract_Document__c.Risk_Notes__c</field>
         <readable>true</readable>
     </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
-        <field>Contract_Document__c.SharePoint_URL__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
-        <field>Contract_Document__c.SharePoint_File_Id__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
+
 </PermissionSet>

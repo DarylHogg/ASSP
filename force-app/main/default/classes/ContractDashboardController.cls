@@ -124,7 +124,7 @@ public with sharing class ContractDashboardController {
                    Risk_Notes__c, Description__c, Services_Summary__c,
                    SLA_Terms__c, Liability_Cap__c, Indemnification__c,
                    Data_Privacy_Clauses__c, Non_Compete_Scope__c, IP_Ownership__c,
-                   Signatories__c, Rate_Card__c, SharePoint_URL__c,
+                   Signatories__c, Rate_Card__c,
                    CreatedDate, LastModifiedDate
             FROM Contract_Document__c
             WHERE Id = :recordId
