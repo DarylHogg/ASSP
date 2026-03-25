@@ -17,8 +17,7 @@ public with sharing class ContractStatusScheduler implements Schedulable {
         updateExpiredContracts();
     }
 
-    @TestVisible
-    private static void updateExpiredContracts() {
+    public static void updateExpiredContracts() {
         List<Contract_Document__c> toExpire = [
             SELECT Id, Status__c
             FROM   Contract_Document__c
