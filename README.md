@@ -1,17 +1,17 @@
 # ASSP Contract Tracker — Salesforce Application
 
-A Salesforce (SFDX) application that monitors a Microsoft Teams / SharePoint folder for new contract files, automatically extracts key terms using the Claude AI API, and surfaces them in a Lightning dashboard with renewal and cancellation alerts.
+A Salesforce (SFDX) application that allows users to upload contract files directly from the dashboard, automatically extracts key terms using the Claude AI API, and surfaces them in a Lightning dashboard with renewal and cancellation alerts.
 
 ---
 
 ## Architecture Overview
 
 ```
-SharePoint (Teams Folder)
+User uploads contract (PDF/DOCX) via contractDashboard LWC
         │
-        ▼  [Microsoft Graph API — scheduled poll]
-ContractProcessingQueueable
-        │  downloads file, calls Claude API
+        ▼
+ContractProcessingQueueable (async job)
+        │  reads file, calls Claude API
         ▼
 Contract_Document__c  ──▶  ContentDocumentLink (file attachment)
         │
@@ -119,12 +119,6 @@ contractRecordDetail LWC  (record detail page)
 | `Days_Until_Expiry__c` | Formula (Number) | Days until contract end date |
 | `Days_Until_Cancellation_Deadline__c` | Formula (Number) | Days until cancellation deadline |
 
-### SharePoint Integration
-| Field | Type | Description |
-|-------|------|-------------|
-| `SharePoint_URL__c` | Text | Source file URL in SharePoint |
-| `SharePoint_File_Id__c` | Text | SharePoint file identifier for deduplication |
-
 ---
 
 ## Alert Logic
@@ -154,7 +148,6 @@ For best results, upload contracts as PDFs.
 
 - Salesforce org (Developer, Sandbox, or Production) with API access
 - [Salesforce CLI (sf)](https://developer.salesforce.com/tools/salesforcecli) installed
-- Microsoft Azure App Registration with Graph API permissions (see Post-Deployment Setup)
 - Anthropic API key
 
 ---
@@ -196,61 +189,13 @@ Alternatively, update the **Contract_Config__mdt** Custom Metadata record direct
 1. **Setup → Custom Metadata Types → Contract Config → Manage Records**
 2. Edit the **Default** record and set `Anthropic_API_Key__c`
 
-### B — Configure the Microsoft Graph External Credential
-
-You need an Azure App Registration with:
-- **API permissions**: `Sites.Read.All`, `Files.Read.All` (Application permissions — client credentials flow)
-- A **client secret** generated
-
-Then:
-
-1. **Setup → Security → Named Credentials → External Credentials → Microsoft Graph**
-2. Update the token endpoint to include your Tenant ID:
-   ```
-   https://login.microsoftonline.com/<YOUR_TENANT_ID>/oauth2/v2.0/token
-   ```
-3. Under **Principals**, edit `MicrosoftGraph_NamedPrincipal` and set:
-   - **Client ID**: Azure app's Application (client) ID
-   - **Client Secret**: Azure app's client secret
-4. Save
-
-### C — Find your SharePoint IDs
-
-Use [Microsoft Graph Explorer](https://developer.microsoft.com/graph/graph-explorer) to retrieve:
-
-**Site ID:**
-```
-GET https://graph.microsoft.com/v1.0/sites?search=<your-site-name>
-```
-
-**Drive ID** (document library, usually "Documents"):
-```
-GET https://graph.microsoft.com/v1.0/sites/<siteId>/drives
-```
-
-**Folder ID** (specific subfolder, or use `root`):
-```
-GET https://graph.microsoft.com/v1.0/drives/<driveId>/root/children
-```
-
-### D — Update Custom Metadata
-
-1. **Setup → Custom Metadata Types → SharePoint Config → Manage Records**
-2. Edit the **Default** record and fill in:
-   - Site ID
-   - Drive ID
-   - Contracts Folder ID
-   - Site Display Name
-   - Is Active = `true`
-3. Save
-
-### E — Assign Permission Sets
+### B — Assign Permission Sets
 
 ```bash
 sf org assign permset --name Contract_Document_Access --target-org myorg -o <username>
 ```
 
-### F — Schedule the Nightly Status Job
+### C — Schedule the Nightly Status Job
 
 Run in **Developer Console → Execute Anonymous**:
 
@@ -260,7 +205,7 @@ String cronExp = '0 0 0 * * ?';
 System.schedule('Contract Status Scheduler', cronExp, new ContractStatusScheduler());
 ```
 
-### G — Open the App
+### D — Open the App
 
 1. Click the **App Launcher** (waffle icon)
 2. Search for **Contract Tracker** and open it
@@ -300,5 +245,4 @@ Or use the **Upload** button on the Contract Dashboard — it will enqueue proce
 - **Callout size limit**: Files larger than ~5 MB may fail. Consider storing very large contracts as links only.
 - **Queueable chaining**: Files are processed one at a time via self-chaining queueables. Large batches will take several minutes.
 - **AI extraction accuracy**: Claude extracts fields on a best-effort basis. Always review contracts with `Extraction_Status__c = 'Completed'` for accuracy before acting on critical dates.
-- **No real-time webhook**: Contracts uploaded to SharePoint are picked up on the next scheduled sync. For near-real-time, run the sync job every 15 minutes.
 - **Supported file types**: PDF produces the best extraction results. DOCX/DOC are supported but may yield lower accuracy.
