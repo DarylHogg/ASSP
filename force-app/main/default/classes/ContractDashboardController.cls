@@ -40,6 +40,11 @@ public with sharing class ContractDashboardController {
             WHERE Status__c = 'Pending Review'
         ];
 
+        summary.expiredContracts = [
+            SELECT COUNT() FROM Contract_Document__c
+            WHERE Status__c = 'Expired'
+        ];
+
         return summary;
     }
 
@@ -169,6 +174,7 @@ public with sharing class ContractDashboardController {
         @AuraEnabled public Integer expiringSoon              { get; set; }
         @AuraEnabled public Integer cancellationDeadlineSoon  { get; set; }
         @AuraEnabled public Integer pendingReview             { get; set; }
+        @AuraEnabled public Integer expiredContracts          { get; set; }
     }
 
     public class ContractPage {

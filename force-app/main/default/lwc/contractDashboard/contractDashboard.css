@@ -30,7 +30,7 @@
 /* ─── Summary Tiles ─── */
 .tile-row {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 0.75rem;
     margin-bottom: 1rem;
 }
@@ -70,12 +70,14 @@
 .tile-expiring   { border-top-color: #fe9339; }
 .tile-cancellation { border-top-color: #c23934; }
 .tile-review     { border-top-color: #7f8de1; }
+.tile-expired    { border-top-color: #706e6b; }
 
 .tile-total .tile-value      { color: #0176d3; }
 .tile-active .tile-value     { color: #2e844a; }
 .tile-expiring .tile-value   { color: #fe9339; }
 .tile-cancellation .tile-value { color: #c23934; }
 .tile-review .tile-value     { color: #7f8de1; }
+.tile-expired .tile-value    { color: #706e6b; }
 
 /* ─── Filter Bar ─── */
 .filter-bar {

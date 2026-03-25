@@ -45,6 +45,10 @@
                     <div class="tile-value">{summary.pendingReview}</div>
                     <div class="tile-label">Pending Review</div>
                 </div>
+                <div class="summary-tile tile-expired" onclick={handleTileClick} data-filter="Expired">
+                    <div class="tile-value">{summary.expiredContracts}</div>
+                    <div class="tile-label">Expired</div>
+                </div>
             </div>
         </template>
 
