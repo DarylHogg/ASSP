@@ -7,7 +7,12 @@
                     <lightning-icon icon-name={contractIcon} size="small" class="contract-type-icon"></lightning-icon>
                     <span class="slds-text-heading_small contract-name" title={contract.Name}>{contract.Name}</span>
                 </div>
-                <lightning-badge label={contract.Status__c} class={statusBadgeClass}></lightning-badge>
+                <div class="badge-group">
+                    <template if:true={contract.Contract_Type__c}>
+                        <lightning-badge label={contract.Contract_Type__c} class="type-badge"></lightning-badge>
+                    </template>
+                    <lightning-badge label={contract.Status__c} class={statusBadgeClass}></lightning-badge>
+                </div>
             </div>
             <p class="vendor-name slds-text-body_small slds-text-color_weak">{contract.Vendor_Name__c}</p>
         </div>

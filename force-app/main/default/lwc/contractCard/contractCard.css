@@ -55,6 +55,19 @@
     padding-left: 1.5rem;
 }
 
+/* ─── Badge Group ─── */
+.badge-group {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+}
+
+.type-badge {
+    --slds-c-badge-color-background: #f3f2f2;
+    --slds-c-badge-text-color: #444;
+}
+
 /* ─── Status Badges ─── */
 .status-active     { --slds-c-badge-color-background: #2e844a; --slds-c-badge-text-color: white; }
 .status-expired    { --slds-c-badge-color-background: #706e6b; --slds-c-badge-text-color: white; }
